@@ -250,7 +250,18 @@ PHOTO_RETENTION_DAYS=90 \
 npm run photos:purge
 ```
 
-## Cloudflare Pagesへのデプロイ
+## 公開デモ（GitHub Pages）
+
+静的デモは <https://jtcpride.github.io/mile/> で公開します。
+`main` へのpush時にテストと本番ビルドを実行し、成功した成果物だけを
+GitHub Pagesへ配信します。Supabase未接続のため、架空寺社のデモデータで
+4画面と重複回答制御を検収できます。
+
+実Supabaseへ接続する場合は、リポジトリのActions variablesに
+`VITE_SUPABASE_URL` と `VITE_SUPABASE_PUBLISHABLE_KEY` を登録し、
+ビルド処理へ渡します。`service_role` keyは登録しません。
+
+## Cloudflare Pagesへのデプロイ（代替）
 
 1. この公開GitHubリポジトリをCloudflare Pagesへ接続します。
 2. Framework presetは **Vite** を選択します。
@@ -292,4 +303,3 @@ npm run build
 ## ライセンス
 
 [MIT](LICENSE)
-

@@ -1,5 +1,5 @@
 const CACHE_NAME = 'mairu-shell-v1'
-const APP_SHELL = ['/', '/manifest.webmanifest', '/icon.svg']
+const APP_SHELL = ['./', './manifest.webmanifest', './icon.svg']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)))
@@ -22,8 +22,7 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(
     fetch(event.request).catch(() =>
-      caches.match(event.request).then((cached) => cached || caches.match('/')),
+      caches.match(event.request).then((cached) => cached || caches.match('./')),
     ),
   )
 })
-

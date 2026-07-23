@@ -16,6 +16,8 @@ import { formatConfirmedAt, formatRemaining, remainingMilliseconds } from './lib
 import type { AnswerReceipt, Coordinates, DataAccess, Mission } from './types'
 
 const RECEIPT_SESSION_KEY = 'mairu:last-receipt'
+const BASE_PATH = import.meta.env.BASE_URL.replace(/\/$/, '')
+const routeHref = (path: string): string => `${BASE_PATH}${path}`
 const appRoot = document.querySelector<HTMLDivElement>('#app')
 if (!appRoot) throw new Error('App root was not found.')
 
@@ -33,7 +35,11 @@ class MairuApp {
       const target = (event.target as HTMLElement).closest<HTMLAnchorElement>('a[data-route]')
       if (!target || target.origin !== window.location.origin) return
       event.preventDefault()
-      this.navigate(target.pathname)
+      const appPath =
+        BASE_PATH && target.pathname.startsWith(BASE_PATH)
+          ? target.pathname.slice(BASE_PATH.length) || '/'
+          : target.pathname
+      this.navigate(appPath)
     })
   }
 
@@ -41,13 +47,13 @@ class MairuApp {
     await this.render()
     if ('serviceWorker' in navigator && import.meta.env.PROD) {
       window.addEventListener('load', () => {
-        void navigator.serviceWorker.register('/sw.js')
+        void navigator.serviceWorker.register(routeHref('/sw.js'))
       })
     }
   }
 
   private navigate(path: string): void {
-    window.history.pushState({}, '', path)
+    window.history.pushState({}, '', routeHref(path))
     void this.render()
   }
 
@@ -63,7 +69,10 @@ class MairuApp {
   private async render(): Promise<void> {
     this.clearView()
     window.scrollTo({ top: 0, behavior: 'instant' })
-    const path = window.location.pathname.replace(/\/+$/, '') || '/'
+    const pathname = window.location.pathname.startsWith(BASE_PATH)
+      ? window.location.pathname.slice(BASE_PATH.length)
+      : window.location.pathname
+    const path = pathname.replace(/\/+$/, '') || '/'
     const answerMatch = path.match(/^\/missions\/([^/]+)\/answer$/)
     const detailMatch = path.match(/^\/missions\/([^/]+)$/)
 
@@ -88,7 +97,7 @@ class MairuApp {
 
   private shell(content: string, options: { pageClass?: string; backHref?: string } = {}): void {
     const back = options.backHref
-      ? `<a class="icon-link" href="${escapeHtml(options.backHref)}" data-route aria-label="前の画面へ戻る">
+      ? `<a class="icon-link" href="${escapeHtml(routeHref(options.backHref))}" data-route aria-label="前の画面へ戻る">
           <span aria-hidden="true">←</span>
         </a>`
       : '<span class="header-spacer" aria-hidden="true"></span>'
@@ -97,7 +106,7 @@ class MairuApp {
       <div class="app-shell ${options.pageClass || ''}">
         <header class="app-header">
           ${back}
-          <a class="wordmark" href="/" data-route aria-label="参る ホーム">参る</a>
+          <a class="wordmark" href="${routeHref('/')}" data-route aria-label="参る ホーム">参る</a>
           <button class="about-button" type="button" data-about aria-label="このサービスについて">?</button>
         </header>
         ${this.dataAccess.mode === 'demo' ? '<div class="demo-ribbon">静的デモモード</div>' : ''}
@@ -391,7 +400,7 @@ class MairuApp {
         <span data-expiry="${escapeHtml(nearest.mission.expiresAt)}">${formatRemaining(nearest.mission.expiresAt)}</span>
         <span>獲得 ${nearest.mission.rewardMiles} mile</span>
       </div>
-      <a class="button button-primary button-full" href="/missions/${nearest.mission.id}" data-route>反応を確かめる</a>
+      <a class="button button-primary button-full" href="${routeHref(`/missions/${nearest.mission.id}`)}" data-route>反応を確かめる</a>
     `
     this.startExpiryUpdates()
   }
@@ -464,7 +473,7 @@ class MairuApp {
           </section>
 
           <div class="sticky-action">
-            <a class="button button-primary button-full" href="/missions/${mission.id}/answer" data-route>
+            <a class="button button-primary button-full" href="${routeHref(`/missions/${mission.id}/answer`)}" data-route>
               この場所をミテキテする
             </a>
           </div>
@@ -652,7 +661,7 @@ class MairuApp {
             <div class="completion-mark muted">済</div>
             <h1>完了情報はありません</h1>
             <p>確認時刻とマイルは、回答直後のこのタブだけに表示します。</p>
-            <a class="button button-primary button-full" href="/" data-route>地図へ戻る</a>
+            <a class="button button-primary button-full" href="${routeHref('/')}" data-route>地図へ戻る</a>
           </main>
         `,
       )
@@ -687,7 +696,7 @@ class MairuApp {
             </div>
           </section>
 
-          <a class="button button-primary button-full" href="/" data-route>地図へ戻る</a>
+          <a class="button button-primary button-full" href="${routeHref('/')}" data-route>地図へ戻る</a>
           <p class="privacy-note">ランキング・交換機能はありません</p>
         </main>
       `,
@@ -701,7 +710,7 @@ class MairuApp {
           <div class="completion-mark muted">静</div>
           <h1>この反応は消えました</h1>
           <p>期限が過ぎたか、公開が終了したミッションです。</p>
-          <a class="button button-primary button-full" href="/" data-route>地図へ戻る</a>
+          <a class="button button-primary button-full" href="${routeHref('/')}" data-route>地図へ戻る</a>
         </main>
       `,
       { backHref: '/' },
