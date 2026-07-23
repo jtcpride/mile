@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Supabase Table Editorでのミッション登録例</title>
+  <desc id="desc">public.missionsへ架空の寺社見守りミッションを追加する入力例</desc>
+  <rect width="1200" height="760" fill="#f4f1e8"/>
+  <rect x="32" y="28" width="1136" height="704" rx="16" fill="#ffffff" stroke="#d8d9d2"/>
+  <rect x="32" y="28" width="1136" height="72" rx="16" fill="#202924"/>
+  <rect x="32" y="82" width="1136" height="18" fill="#202924"/>
+  <text x="64" y="72" fill="#f4f1e8" font-family="system-ui, sans-serif" font-size="24" font-weight="700">Table Editor</text>
+  <text x="245" y="72" fill="#c6a96a" font-family="ui-monospace, monospace" font-size="21">public.missions</text>
+  <rect x="1008" y="48" width="124" height="34" rx="5" fill="#c6a96a"/>
+  <text x="1070" y="71" text-anchor="middle" fill="#202924" font-family="system-ui, sans-serif" font-size="15" font-weight="700">Save row</text>
+
+  <text x="64" y="140" fill="#344c3e" font-family="system-ui, sans-serif" font-size="15" font-weight="700" letter-spacing="2">INSERT ROW / 入力例</text>
+  <text x="64" y="169" fill="#666d68" font-family="system-ui, sans-serif" font-size="14">実際のSupabase画面では列の並びやボタン表記が変わる場合があります。</text>
+
+  <g font-family="system-ui, sans-serif">
+    <text x="64" y="219" fill="#202924" font-size="15" font-weight="700">title</text>
+    <rect x="64" y="232" width="490" height="48" rx="5" fill="#f7f7f4" stroke="#d8d9d2"/>
+    <text x="80" y="262" fill="#202924" font-size="16">青葉神社・石灯籠</text>
+
+    <text x="582" y="219" fill="#202924" font-size="15" font-weight="700">lat</text>
+    <rect x="582" y="232" width="256" height="48" rx="5" fill="#f7f7f4" stroke="#d8d9d2"/>
+    <text x="598" y="262" fill="#202924" font-size="16">35.0149</text>
+
+    <text x="866" y="219" fill="#202924" font-size="15" font-weight="700">lng</text>
+    <rect x="866" y="232" width="266" height="48" rx="5" fill="#f7f7f4" stroke="#d8d9d2"/>
+    <text x="882" y="262" fill="#202924" font-size="16">135.7678</text>
+
+    <text x="64" y="319" fill="#202924" font-size="15" font-weight="700">question</text>
+    <rect x="64" y="332" width="1068" height="48" rx="5" fill="#f7f7f4" stroke="#d8d9d2"/>
+    <text x="80" y="362" fill="#202924" font-size="16">正面の石灯籠は倒れていませんか？</text>
+
+    <text x="64" y="419" fill="#202924" font-size="15" font-weight="700">choices</text>
+    <rect x="64" y="432" width="1068" height="58" rx="5" fill="#f7f7f4" stroke="#d8d9d2"/>
+    <text x="80" y="466" fill="#202924" font-family="ui-monospace, monospace" font-size="15">{"倒れていない","傾き・破損が見える","公道から確認できない"}</text>
+
+    <text x="64" y="529" fill="#202924" font-size="15" font-weight="700">expires_at</text>
+    <rect x="64" y="542" width="330" height="48" rx="5" fill="#f7f7f4" stroke="#d8d9d2"/>
+    <text x="80" y="572" fill="#202924" font-family="ui-monospace, monospace" font-size="15">2026-07-24 09:00:00+09</text>
+
+    <text x="422" y="529" fill="#202924" font-size="15" font-weight="700">visibility</text>
+    <rect x="422" y="542" width="200" height="48" rx="5" fill="#f7f7f4" stroke="#d8d9d2"/>
+    <text x="438" y="572" fill="#202924" font-size="16">public</text>
+
+    <text x="650" y="529" fill="#202924" font-size="15" font-weight="700">status</text>
+    <rect x="650" y="542" width="200" height="48" rx="5" fill="#f7f7f4" stroke="#d8d9d2"/>
+    <text x="666" y="572" fill="#202924" font-size="16">active</text>
+
+    <text x="878" y="529" fill="#202924" font-size="15" font-weight="700">reward_miles</text>
+    <rect x="878" y="542" width="254" height="48" rx="5" fill="#f7f7f4" stroke="#d8d9d2"/>
+    <text x="894" y="572" fill="#202924" font-size="16">3</text>
+  </g>
+
+  <rect x="64" y="627" width="1068" height="72" rx="6" fill="#eef1eb"/>
+  <circle cx="94" cy="663" r="14" fill="#344c3e"/>
+  <text x="94" y="669" text-anchor="middle" fill="#ffffff" font-family="system-ui, sans-serif" font-size="16" font-weight="700">!</text>
+  <text x="122" y="655" fill="#202924" font-family="system-ui, sans-serif" font-size="15" font-weight="700">id・created_at・updated_at は空欄で保存</text>
+  <text x="122" y="680" fill="#58635c" font-family="system-ui, sans-serif" font-size="14">noteには「人を撮らない・公道から見える範囲のみ」など、現地固有の注意を追記します。</text>
+</svg>
