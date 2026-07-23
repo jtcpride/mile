@@ -8,4 +8,6 @@ coverage/
 playwright-report/
 test-results/
 .supabase/
-
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
