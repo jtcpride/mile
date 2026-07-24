@@ -31,9 +31,9 @@
 
 - Vite + Vanilla TypeScript
 - MapLibre GL JS
-- OpenFreeMap Positron tiles
+- OpenStreetMap Standard raster tiles
 - Supabase Database / Anonymous Auth / Storage / RLS
-- Cloudflare Pages（純静的ホスティング）
+- GitHub Pages（純静的ホスティング）
 - Vitest
 
 実行時依存は `maplibre-gl` と `@supabase/supabase-js` だけです。
@@ -42,7 +42,7 @@
 ```text
 ブラウザ
 ├─ 位置情報 ── 地図中心・距離計算だけ（メモリ上）
-├─ MapLibre ── OpenFreeMap tiles
+├─ MapLibre ── OpenStreetMap Standard raster tiles
 └─ data-access contracts
    ├─ Demo repositories
    └─ Supabase repositories
@@ -80,14 +80,18 @@ VITE_DEMO_MODE=false
 
 ## Supabase初期設定
 
+発注者が行うアカウント・プロジェクト作成と、その後のCodexとの分担は
+[`docs/supabase-setup.md`](docs/supabase-setup.md) にまとめています。
+
 1. Supabase Freeで新しいプロジェクトを作成します。
 2. Dashboardの **SQL Editor** で
    [`supabase/migrations/202607230001_initial_schema.sql`](supabase/migrations/202607230001_initial_schema.sql)
    を実行します。
 3. 同じくSQL Editorで [`supabase/seed.sql`](supabase/seed.sql) を実行します。
 4. **Authentication → Sign In / Providers** で Anonymous Sign-Insを有効にします。
-5. **Project Settings → API** からProject URLとPublishable keyを取得し、
-   ホスティング環境変数へ登録します。
+5. **Connect** または **Settings → API Keys** からPublishable keyを取得します。
+6. **Integrations → Data API** からProject URLを確認し、
+   GitHub Actions variablesへ登録します。
 
 Anonymous Sign-Inはメールアドレス等を要求しませんが、匿名ユーザーも
 `authenticated` ロールとしてRLSの対象になります。公開後はSupabaseが推奨する

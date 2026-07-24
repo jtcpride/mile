@@ -76,3 +76,44 @@
 
 - `c37cff9` — 公開リポジトリから検証済みPWAをGitHub Pagesへ配信
 - 写真削除ワークフロー修正をこのセッションの末尾でコミットする。
+
+## 2026-07-24 — 第3回
+
+### やったこと
+
+- 発注者の実機確認で、波紋、ズーム、空振り表示は正常だが背景地図が
+  描画されないことを確認した。
+- 公開スタイル、TileJSON、京都付近のVector Tile、glyph、spriteが
+  HTTP 200で配信されていることを切り分けた。
+- 地図非表示は仕様ではなく実機描画バグと判断し、MapLibreを維持したまま
+  OpenStreetMap Standardのラスタータイルへ切り替えた。
+- 背景地図の彩度とコントラストをMapLibre paintで抑え、寺社文脈の
+  静かなトーンを維持した。
+- Cloudflare PagesからGitHub Pagesへ公開先を変更した判断を
+  `docs/decisions/0006-hosting-github-pages-over-cloudflare.md` に明記した。
+- Supabaseアカウント・プロジェクト作成の発注者向け手順と、
+  作成後のCodex作業分担を `docs/supabase-setup.md` に追加した。
+- GitHub PagesのビルドがActions variablesからSupabase公開接続値を
+  受け取れるようにした。
+- 地図設定テストを追加し、全16テストと本番ビルドを通した。
+
+### 選んだ技術判断とその理由
+
+- v0.1の背景地図はラスタータイルとする。外部style、Vector Tile、glyph、
+  spriteの多段取得を減らし、モバイル実機の描画確実性を優先するため。
+- 新しい地図ライブラリは追加しない。既存のMapLibre、探知演出、
+  マーカー実装を維持して修正範囲を限定するため。
+- OSM Standardは通常の対話表示だけに使い、プリフェッチ・オフライン保存は
+  行わない。ブラウザキャッシュと帰属表示を含めTile Usage Policyに従うため。
+- SupabaseのPublishable keyはGitHub Actions variablesで渡す。
+  公開クライアント用の値とSecret keyの運用境界を明確にするため。
+
+### 未解決の課題
+
+- 修正版をGitHub Pagesへ配信した後、発注者実機で背景地図を再確認する。
+- Supabaseプロジェクト作成は発注者のアカウント作業待ち。
+- 実Supabase接続後、匿名回答、サーバー時刻、重複拒否、非公開写真を検証する。
+
+### このセッションのコミット
+
+- 地図修正、判断記録、Supabase接続準備をこのセッションの末尾でコミットする。
