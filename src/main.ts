@@ -6,7 +6,7 @@ import {
   DEFAULT_CENTER,
   DEFAULT_CENTER_LABEL,
   DETECTION_RADIUS_METERS,
-  MAP_STYLE_URL,
+  MAP_STYLE,
 } from './config'
 import { createDataAccess } from './data-access'
 import { distanceInMeters, formatDistance } from './lib/geo'
@@ -201,7 +201,7 @@ class MairuApp {
 
     const map = new MapLibreMap({
       container: mapElement,
-      style: MAP_STYLE_URL,
+      style: MAP_STYLE,
       center: [DEFAULT_CENTER.lng, DEFAULT_CENTER.lat],
       zoom: 13.8,
       attributionControl: { compact: true },
@@ -210,7 +210,8 @@ class MairuApp {
     this.map = map
     map.addControl(new NavigationControl({ showCompass: false }), 'top-right')
 
-    map.on('error', () => {
+    map.on('error', (event) => {
+      console.error('MapLibre failed to load the base map.', event.error)
       this.showToast('地図を読み込めませんでした。通信状態をご確認ください。', 'error')
     })
 
