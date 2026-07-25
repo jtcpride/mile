@@ -73,3 +73,20 @@ Secret keyが漏えいした場合の権限は写真削除だけには限定さ�
 
 漏えいの疑いがある場合は、この専用keyだけを直ちに削除し、新しいkeyへ
 入れ替える。
+
+## 2026-07-25 本番検証
+
+- Secret登録名だけを確認し、値は取得・表示しなかった。
+- 初回dry-runは `answers` の直接SELECT拒否で削除0件のまま停止した。
+- 直接権限を追加せず、写真保持専用2関数のEXECUTEだけを付与した。
+- 対象なしdry-runが成功した。
+- 91日前の検証用写真1件を用意し、dry-runが1件を検出して削除しないことを確認した。
+- 実行時は同じ1件だけを削除し、Storage objectと回答の写真参照が消えた。
+- 90日未満の実回答はStorage objectと回答の写真参照がともに残った。
+- 検証用回答とミッションを削除し、実回答には触れていない。
+- Actionsログ内のSecret値はすべて `***` としてマスクされた。
+
+検証run:
+
+- [対象1件のdry-run](https://github.com/jtcpride/mile/actions/runs/30162416797)
+- [対象1件の実削除](https://github.com/jtcpride/mile/actions/runs/30162455697)

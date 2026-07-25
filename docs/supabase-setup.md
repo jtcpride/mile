@@ -102,3 +102,7 @@ Variable `VITE_SUPABASE_URL` を利用する。
 Secret keyはbucket単位にスコープできないため、判断と安全策は
 [`0009-actions-secret-for-photo-retention.md`](decisions/0009-actions-secret-for-photo-retention.md)
 を参照する。
+
+2026-07-25に専用Secretを登録し、対象なしdry-run、期限超過の検証用写真
+1件のdry-runと実削除、90日未満写真の非削除を確認済み。Secret値は取得せず、
+Actionsログでは `***` にマスクされた。検証用DB行は確認後に削除済み。
