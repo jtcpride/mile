@@ -2,10 +2,10 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 import {
-  calculatePhotoCutoff,
-  isExpiredPhotoRow,
+  isPurgeCandidate,
   isSafeAnswerPhotoPath,
   partitionPhotoRows,
+  validateRetentionDays,
 } from '../scripts/photo-retention-policy.mjs'
 
 const eligiblePath =
@@ -20,25 +20,21 @@ const purgeWorkflow = readFileSync(
   new URL('../.github/workflows/purge-expired-photos.yml', import.meta.url),
   'utf8',
 )
+const retentionMigration = readFileSync(
+  new URL(
+    '../supabase/migrations/202607250002_photo_retention_rpc.sql',
+    import.meta.url,
+  ),
+  'utf8',
+)
 
 describe('photo retention policy', () => {
-  const now = new Date('2026-07-25T12:00:00.000Z')
-  const cutoff = calculatePhotoCutoff(now, 90)
-
-  it('uses a strict 90-day server-time cutoff', () => {
-    expect(cutoff).toBe('2026-04-26T12:00:00.000Z')
-    expect(
-      isExpiredPhotoRow(
-        { photo_url: eligiblePath, confirmed_at: '2026-04-26T11:59:59.999Z' },
-        cutoff,
-      ),
-    ).toBe(true)
-    expect(
-      isExpiredPhotoRow(
-        { photo_url: eligiblePath, confirmed_at: '2026-04-26T12:00:00.000Z' },
-        cutoff,
-      ),
-    ).toBe(false)
+  it('uses a strict 90-day database-server cutoff', () => {
+    expect(retentionMigration).toContain(
+      'confirmed_at < now() - make_interval(days => p_retention_days)',
+    )
+    expect(() => validateRetentionDays(90)).not.toThrow()
+    expect(() => validateRetentionDays(0)).toThrow()
   })
 
   it('accepts only the private answer-photo path shape', () => {
@@ -50,22 +46,23 @@ describe('photo retention policy', () => {
 
   it('keeps fresh and malformed photos out of the deletion set', () => {
     const expired = {
-      id: 'expired',
-      photo_url: eligiblePath,
+      answer_id: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+      photo_path: eligiblePath,
       confirmed_at: '2026-04-01T00:00:00.000Z',
     }
     const fresh = {
-      id: 'fresh',
-      photo_url: eligiblePath,
-      confirmed_at: '2026-07-25T11:00:00.000Z',
+      answer_id: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+      photo_path: eligiblePath,
+      confirmed_at: 'not-a-date',
     }
     const malformed = {
-      id: 'malformed',
-      photo_url: 'unexpected/path.jpg',
+      answer_id: 'ffffffff-ffff-4fff-8fff-ffffffffffff',
+      photo_path: 'unexpected/path.jpg',
       confirmed_at: '2026-04-01T00:00:00.000Z',
     }
 
-    expect(partitionPhotoRows([expired, fresh, malformed], cutoff)).toEqual({
+    expect(isPurgeCandidate(expired)).toBe(true)
+    expect(partitionPhotoRows([expired, fresh, malformed])).toEqual({
       eligible: [expired],
       rejected: [fresh, malformed],
     })
@@ -76,6 +73,13 @@ describe('photo retention policy', () => {
     expect(purgeWorkflow).toContain('SUPABASE_PHOTO_PURGE_SECRET_KEY')
     expect(purgeWorkflow).not.toContain('SUPABASE_SERVICE_ROLE_KEY')
     expect(purgeScript).toContain("from('answer-photos').remove(paths)")
+    expect(purgeScript).not.toContain(".from('answers')")
+    expect(retentionMigration).not.toMatch(
+      /grant\s+(?:select|update|delete|insert)[\s\S]*?public\.answers/i,
+    )
+    expect(retentionMigration).toMatch(
+      /grant execute[\s\S]*?list_expired_answer_photos[\s\S]*?to service_role/i,
+    )
   })
 
   it('does not print photo paths or answer identifiers', () => {

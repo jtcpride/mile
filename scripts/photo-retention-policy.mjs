@@ -4,41 +4,31 @@ const PHOTO_PATH_PATTERN = new RegExp(
   `^${UUID_PATTERN}/${UUID_PATTERN}/${UUID_PATTERN}\\.(?:jpe?g|webp)$`,
   'i',
 )
+const UUID_VALUE_PATTERN = new RegExp(`^${UUID_PATTERN}$`, 'i')
 
-export function calculatePhotoCutoff(now, retentionDays) {
-  if (!(now instanceof Date) || Number.isNaN(now.getTime())) {
-    throw new TypeError('now must be a valid Date.')
-  }
+export function validateRetentionDays(retentionDays) {
   if (!Number.isInteger(retentionDays) || retentionDays < 1) {
     throw new TypeError('retentionDays must be a positive integer.')
   }
-
-  return new Date(
-    now.getTime() - retentionDays * 24 * 60 * 60 * 1000,
-  ).toISOString()
 }
 
 export function isSafeAnswerPhotoPath(path) {
   return typeof path === 'string' && PHOTO_PATH_PATTERN.test(path)
 }
 
-export function isExpiredPhotoRow(row, cutoff) {
+export function isPurgeCandidate(row) {
   if (!row || typeof row !== 'object') return false
-  if (!isSafeAnswerPhotoPath(row.photo_url)) return false
-
-  const confirmedAt = Date.parse(row.confirmed_at)
-  const cutoffTime = Date.parse(cutoff)
+  if (!isSafeAnswerPhotoPath(row.photo_path)) return false
   return (
-    Number.isFinite(confirmedAt) &&
-    Number.isFinite(cutoffTime) &&
-    confirmedAt < cutoffTime
+    UUID_VALUE_PATTERN.test(row.answer_id) &&
+    Number.isFinite(Date.parse(row.confirmed_at))
   )
 }
 
-export function partitionPhotoRows(rows, cutoff) {
+export function partitionPhotoRows(rows) {
   return rows.reduce(
     (result, row) => {
-      if (isExpiredPhotoRow(row, cutoff)) {
+      if (isPurgeCandidate(row)) {
         result.eligible.push(row)
       } else {
         result.rejected.push(row)

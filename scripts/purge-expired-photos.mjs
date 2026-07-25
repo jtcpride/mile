@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 
 import {
-  calculatePhotoCutoff,
   partitionPhotoRows,
+  validateRetentionDays,
 } from './photo-retention-policy.mjs'
 
 const retentionDays = Number.parseInt(process.env.PHOTO_RETENTION_DAYS || '90', 10)
@@ -20,15 +20,15 @@ if (!supabaseUrl || !secretKey) {
 const client = createClient(supabaseUrl, secretKey, {
   auth: { persistSession: false, autoRefreshToken: false },
 })
-const cutoff = calculatePhotoCutoff(new Date(), retentionDays)
+validateRetentionDays(retentionDays)
 
-const { data: expiredAnswers, error: queryError } = await client
-  .from('answers')
-  .select('id, photo_url, confirmed_at')
-  .not('photo_url', 'is', null)
-  .lt('confirmed_at', cutoff)
-  .order('confirmed_at', { ascending: true })
-  .limit(1000)
+const { data: expiredAnswers, error: queryError } = await client.rpc(
+  'list_expired_answer_photos',
+  {
+    p_retention_days: retentionDays,
+    p_limit: 1000,
+  },
+)
 
 if (queryError) {
   throw queryError
@@ -36,7 +36,6 @@ if (queryError) {
 
 const { eligible: rows, rejected } = partitionPhotoRows(
   expiredAnswers || [],
-  cutoff,
 )
 if (rejected.length > 0) {
   throw new Error(
@@ -56,22 +55,29 @@ if (dryRun) {
   process.exit(0)
 }
 
-const paths = rows.map((row) => row.photo_url)
+const paths = rows.map((row) => row.photo_path)
 const { error: removeError } = await client.storage.from('answer-photos').remove(paths)
 if (removeError) {
   throw removeError
 }
 
 for (const row of rows) {
-  const { error: updateError } = await client
-    .from('answers')
-    .update({ photo_url: null })
-    .eq('id', row.id)
-    .eq('photo_url', row.photo_url)
-    .lt('confirmed_at', cutoff)
+  const { data: cleared, error: updateError } = await client.rpc(
+    'clear_expired_answer_photo',
+    {
+      p_answer_id: row.answer_id,
+      p_photo_path: row.photo_path,
+      p_retention_days: retentionDays,
+    },
+  )
 
   if (updateError) {
     throw updateError
+  }
+  if (cleared !== true) {
+    throw new Error(
+      'An expired answer changed during cleanup; its reference was not cleared.',
+    )
   }
 }
 
