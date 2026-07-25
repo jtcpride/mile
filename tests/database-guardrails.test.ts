@@ -5,6 +5,13 @@ const migration = readFileSync(
   new URL('../supabase/migrations/202607230001_initial_schema.sql', import.meta.url),
   'utf8',
 )
+const missionReadGrant = readFileSync(
+  new URL(
+    '../supabase/migrations/202607250001_grant_mission_read.sql',
+    import.meta.url,
+  ),
+  'utf8',
+)
 
 describe('database guardrails', () => {
   it('limits public reads to public, active, unexpired missions', () => {
@@ -28,6 +35,15 @@ describe('database guardrails', () => {
     expect(migration).not.toMatch(
       /create policy[\s\S]*?\bon public\.answers\b[\s\S]*?\bfor select\b/i,
     )
+    expect(missionReadGrant).not.toMatch(
+      /grant\s+(select|insert|update|delete)[\s\S]*?public\.answers/i,
+    )
+  })
+
+  it('grants Data API read access only to missions', () => {
+    expect(missionReadGrant).toMatch(
+      /grant select on table public\.missions to anon,\s*authenticated/i,
+    )
   })
 
   it('keeps answer photos in a private bucket', () => {
@@ -36,4 +52,3 @@ describe('database guardrails', () => {
     )
   })
 })
-
