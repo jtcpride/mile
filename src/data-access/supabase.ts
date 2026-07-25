@@ -86,10 +86,10 @@ export class SupabaseAnswerRepository implements AnswerRepository {
   constructor(private readonly client: SupabaseClient) {}
 
   async submit(input: AnswerSubmission): Promise<AnswerReceipt> {
-    const userId = await ensureAnonymousSession(this.client)
     let uploadedPath: string | null = null
 
     try {
+      const userId = await ensureAnonymousSession(this.client)
       if (input.photo) {
         uploadedPath = `${userId}/${input.missionId}/${crypto.randomUUID()}.jpg`
         const { error: uploadError } = await this.client.storage
@@ -99,7 +99,10 @@ export class SupabaseAnswerRepository implements AnswerRepository {
             cacheControl: '3600',
             upsert: false,
           })
-        if (uploadError) throw uploadError
+        if (uploadError) {
+          uploadedPath = null
+          throw new PhotoUploadError(uploadError)
+        }
       }
 
       const { data, error } = await this.client.rpc('submit_answer', {
@@ -127,9 +130,38 @@ export class SupabaseAnswerRepository implements AnswerRepository {
   }
 }
 
-function normalizeSupabaseError(error: unknown): Error {
-  const message = error instanceof Error ? error.message : String(error)
-  if (message.includes('answers_one_per_anonymous_user') || message.includes('duplicate key')) {
+class PhotoUploadError extends Error {
+  constructor(cause: unknown) {
+    super(readSupabaseError(cause))
+    this.name = 'PhotoUploadError'
+  }
+}
+
+function readSupabaseError(error: unknown): string {
+  if (error instanceof Error) return `${error.name} ${error.message}`
+  if (typeof error !== 'object' || error === null) return String(error)
+
+  return ['code', 'message', 'details', 'hint', 'statusCode', 'error']
+    .map((key) => Reflect.get(error, key))
+    .filter((value): value is string | number => {
+      return typeof value === 'string' || typeof value === 'number'
+    })
+    .join(' ')
+}
+
+export function normalizeSupabaseError(error: unknown): Error {
+  if (error instanceof PhotoUploadError) {
+    return new Error(
+      '写真をアップロードできませんでした。通信状態を確認して、もう一度お試しください。',
+    )
+  }
+
+  const message = readSupabaseError(error)
+  if (
+    message.includes('23505') ||
+    message.includes('answers_one_per_anonymous_user') ||
+    message.includes('duplicate key')
+  ) {
     return new Error('この端末からは、すでにこのミッションへ回答済みです。')
   }
   if (message.includes('mission is unavailable')) {
@@ -155,4 +187,3 @@ export function createSupabaseRepositories(url: string, publishableKey: string) 
     answers: new SupabaseAnswerRepository(client),
   }
 }
-
