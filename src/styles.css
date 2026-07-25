@@ -566,6 +566,15 @@ p {
   box-shadow: var(--shadow);
   backdrop-filter: blur(18px);
   animation: sheet-rise 320ms ease-out both;
+  transition:
+    opacity 300ms ease,
+    transform 300ms ease;
+}
+
+.reaction-sheet.is-dismissing {
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
 }
 
 @keyframes sheet-rise {
@@ -1238,4 +1247,3 @@ p {
     transition-duration: 0.001ms !important;
   }
 }
-

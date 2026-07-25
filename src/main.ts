@@ -13,6 +13,7 @@ import { distanceInMeters, formatDistance } from './lib/geo'
 import { escapeHtml } from './lib/html'
 import { compressPhoto, formatFileSize } from './lib/image'
 import { formatConfirmedAt, formatRemaining, remainingMilliseconds } from './lib/time'
+import { scheduleTransientDismiss } from './lib/transient'
 import type { AnswerReceipt, Coordinates, DataAccess, Mission } from './types'
 
 const RECEIPT_SESSION_KEY = 'mairu:last-receipt'
@@ -26,6 +27,7 @@ class MairuApp {
   private map: MapLibreMap | null = null
   private mapMarkers: Marker[] = []
   private timers: number[] = []
+  private cancelReactionSheetDismiss: (() => void) | null = null
   private currentCoordinates: Coordinates | null = null
   private geolocationDenied = false
 
@@ -58,6 +60,8 @@ class MairuApp {
   }
 
   private clearView(): void {
+    this.cancelReactionSheetDismiss?.()
+    this.cancelReactionSheetDismiss = null
     this.timers.forEach((timer) => window.clearInterval(timer))
     this.timers = []
     this.mapMarkers.forEach((marker) => marker.remove())
@@ -349,6 +353,9 @@ class MairuApp {
 
     const sheet = this.root.querySelector<HTMLElement>('[data-reaction-sheet]')
     if (!sheet) return
+    this.cancelReactionSheetDismiss?.()
+    this.cancelReactionSheetDismiss = null
+    sheet.classList.remove('is-dismissing')
 
     if (results.length === 0) {
       sheet.hidden = false
@@ -357,6 +364,15 @@ class MairuApp {
         <strong>いま、近くに進行中のミテキテはありません。</strong>
         <p>場所を変えて、また探知してみてください。</p>
       `
+      this.cancelReactionSheetDismiss = scheduleTransientDismiss(sheet, {
+        schedule: (callback, delay) => window.setTimeout(callback, delay),
+        cancel: (timer) => window.clearTimeout(timer),
+        onDismissed: () => {
+          const guide = this.root.querySelector<HTMLElement>('.map-attribution-note')
+          if (guide) guide.textContent = '場所を変えたら「もう一度探知」で再確認できます'
+          this.cancelReactionSheetDismiss = null
+        },
+      })
       return
     }
 
