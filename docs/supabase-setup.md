@@ -49,7 +49,8 @@ GitHub Actionsの**Secrets**へ発注者またはCodexがDashboardから直接�
 適用順は次のとおり。
 
 1. `supabase/migrations/202607230001_initial_schema.sql`
-2. `supabase/seed.sql`
+2. `supabase/migrations/202607250001_grant_mission_read.sql`
+3. `supabase/seed.sql`
 
 初期SQLは、次をまとめて作成する。
 
@@ -67,3 +68,13 @@ GitHub Actionsの**Secrets**へ発注者またはCodexがDashboardから直接�
   Turnstile導入と古い匿名ユーザーの定期削除を検討する。
 - Freeプラン休止を避けるため、運営は週1回以上アクセスして
   ミッション登録と期限確認を行う。
+
+## 6. 2026-07-25 接続確認
+
+- TokyoリージョンのFreeプロジェクトへ初期migrationとseedを適用済み。
+- Anonymous Sign-Inを有効化済み。
+- `answer-photos` bucketが非公開、1.2MB上限、JPEG/WebP限定であることを確認済み。
+- GitHub Actions variablesへProject URLとPublishable keyを登録済み。
+- 公開版でミッション取得、匿名回答、サーバー確認時刻、累計マイル、
+  DB一意制約による重複拒否を確認済み。
+- Database password、Secret key、`service_role` keyは取得・共有・登録していない。

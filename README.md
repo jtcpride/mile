@@ -87,10 +87,13 @@ VITE_DEMO_MODE=false
 2. Dashboardの **SQL Editor** で
    [`supabase/migrations/202607230001_initial_schema.sql`](supabase/migrations/202607230001_initial_schema.sql)
    を実行します。
-3. 同じくSQL Editorで [`supabase/seed.sql`](supabase/seed.sql) を実行します。
-4. **Authentication → Sign In / Providers** で Anonymous Sign-Insを有効にします。
-5. **Connect** または **Settings → API Keys** からPublishable keyを取得します。
-6. **Integrations → Data API** からProject URLを確認し、
+3. 続けて
+   [`supabase/migrations/202607250001_grant_mission_read.sql`](supabase/migrations/202607250001_grant_mission_read.sql)
+   を実行します。
+4. 同じくSQL Editorで [`supabase/seed.sql`](supabase/seed.sql) を実行します。
+5. **Authentication → Sign In / Providers** で Anonymous Sign-Insを有効にします。
+6. **Connect** または **Settings → API Keys** からPublishable keyを取得します。
+7. **Integrations → Data API** からProject URLを確認し、
    GitHub Actions variablesへ登録します。
 
 Anonymous Sign-Inはメールアドレス等を要求しませんが、匿名ユーザーも
@@ -254,14 +257,14 @@ PHOTO_RETENTION_DAYS=90 \
 npm run photos:purge
 ```
 
-## 公開デモ（GitHub Pages）
+## 公開版（GitHub Pages）
 
-静的デモは <https://jtcpride.github.io/mile/> で公開します。
+公開版は <https://jtcpride.github.io/mile/> で公開しています。
 `main` へのpush時にテストと本番ビルドを実行し、成功した成果物だけを
-GitHub Pagesへ配信します。Supabase未接続のため、架空寺社のデモデータで
-4画面と重複回答制御を検収できます。
+GitHub Pagesへ配信します。現在はSupabaseへ接続し、公開・進行中・期限内の
+架空寺社seedだけをData APIから取得します。
 
-実Supabaseへ接続する場合は、リポジトリのActions variablesに
+接続値はリポジトリのActions variablesに
 `VITE_SUPABASE_URL` と `VITE_SUPABASE_PUBLISHABLE_KEY` を登録し、
 ビルド処理へ渡します。`service_role` keyは登録しません。
 
@@ -278,8 +281,7 @@ GitHub Pagesへ配信します。Supabase未接続のため、架空寺社のデ
 `public/_redirects` がSPAの直接URLを、`public/_headers` がCSP等の
 セキュリティヘッダーを設定します。Cloudflare Pages Functionsは使用しません。
 
-Supabase未接続でデプロイした場合は静的デモモードになります。本番公開では
-必ずSupabase環境変数を設定してください。
+Supabase接続値なしでデプロイした場合だけ静的デモモードになります。
 
 ## 検証
 

@@ -118,3 +118,39 @@
 
 - `b1eb0ed` — モバイル実機で背景地図を確実に描画する修正
 - `bf9decb` — ホスティング判断を記録しSupabase引き継ぎを準備
+
+## 2026-07-25 — 第4回
+
+### やったこと
+
+- 発注者作成済みのSupabase Freeプロジェクトへ初期migrationと架空寺社seedを適用した。
+- Anonymous Sign-Inを有効化し、非公開 `answer-photos` bucketと3本のStorage policyを確認した。
+- GitHub Actions variablesへProject URLとPublishable keyを登録し、Pagesを再配信した。
+- 実Data APIの初回検証で `missions` のPostgres読取権限不足を検出した。
+- `missions` だけに `anon` / `authenticated` のSELECT権限を与える追加migrationを適用した。
+- 公開版で実ミッション取得、匿名回答、サーバー確認時刻、3 mile付与、
+  DB一意制約による同一端末の重複回答拒否を確認した。
+- Database password、Secret key、`service_role` keyは取得・共有・登録しなかった。
+- 全17テストと本番ビルドを通した。
+
+### 選んだ技術判断とその理由
+
+- RLSとは別に `missions` のSELECT権限だけを付与する。Data APIがRLSを
+  評価できるようにしつつ、`limited`、期限切れ、下書きは既存RLSで隠すため。
+- `answers` には直接権限を付与しない。回答・時刻・匿名ID・マイルを
+  引き続き `submit_answer` RPCだけで確定するため。
+- Supabaseの新しいPublishable keyだけをPagesへ渡す。ブラウザに不要な
+  権限キーを接続作業へ持ち込まないため。
+
+### 未解決の課題
+
+- 任意写真の実ファイルアップロードは未実施。bucketの非公開設定、容量上限、
+  MIME制限、所有者policyはDashboardとmigrationで確認済み。
+- 90日写真削除ワークフローを本番実行するには、ブラウザへ渡さないSecret keyを
+  GitHub Actions Secretsへ別途安全に設定する必要がある。
+- Anonymous Sign-Inの濫用対策として、初期利用状況を見てTurnstile導入を検討する。
+
+### このセッションのコミット
+
+- `72fead3` — Data APIへ公開ミッションだけを読める最小権限を追加
+- Supabase接続状況と検証結果の文書更新を、このセッション末尾でコミットする。
