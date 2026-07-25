@@ -4,17 +4,28 @@ on:
   schedule:
     - cron: '17 18 * * 0'
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Check eligible photo count without deleting
+        required: true
+        default: true
+        type: boolean
 
 permissions:
   contents: read
+
+concurrency:
+  group: purge-expired-answer-photos
+  cancel-in-progress: false
 
 jobs:
   purge:
     runs-on: ubuntu-latest
     env:
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+      SUPABASE_PHOTO_PURGE_SECRET_KEY: ${{ secrets.SUPABASE_PHOTO_PURGE_SECRET_KEY }}
       PHOTO_RETENTION_DAYS: '90'
+      PHOTO_PURGE_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -23,8 +34,8 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Remove photos older than 90 days
-        if: ${{ env.SUPABASE_URL != '' && env.SUPABASE_SERVICE_ROLE_KEY != '' }}
+        if: ${{ env.SUPABASE_URL != '' && env.SUPABASE_PHOTO_PURGE_SECRET_KEY != '' }}
         run: npm run photos:purge
       - name: Explain skipped cleanup
-        if: ${{ env.SUPABASE_URL == '' || env.SUPABASE_SERVICE_ROLE_KEY == '' }}
-        run: echo "Supabase cleanup secrets are not configured; no deletion was attempted."
+        if: ${{ env.SUPABASE_URL == '' || env.SUPABASE_PHOTO_PURGE_SECRET_KEY == '' }}
+        run: echo "The photo purge URL or dedicated secret is not configured; no deletion was attempted."
