@@ -239,21 +239,31 @@ order by a.confirmed_at desc;
 - 90日経過後は写真本体を削除し、回答行の `photo_url` を `null` にします。
 - 選択回答、確認時刻、匿名IDは集計用データとして残します。
 
-公開GitHubリポジトリのActions secretsへ次を設定すると、毎週日曜に
+公開GitHubリポジトリのActionsへ次を設定すると、毎週日曜に
 [`scripts/purge-expired-photos.mjs`](scripts/purge-expired-photos.mjs) が実行されます。
 
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
+- Variable `VITE_SUPABASE_URL`（Pages接続と共用）
+- Repository Secret `SUPABASE_PHOTO_PURGE_SECRET_KEY`（削除専用に新規発行）
 
-`service_role` keyはGitHub Secretsと運営端末の環境変数以外へ置かず、
-リポジトリへコミットしないでください。
+SupabaseのSecret keyはRLSを迂回する広い権限を持ち、bucket単位には
+スコープできません。このため写真削除専用に新しいkeyを発行し、値は
+Actions Secretsだけへ保存します。ソース、Actions variables、Pages、
+文書、ログ、チャットへ書かないでください。判断の経緯と残余リスクは
+[`docs/decisions/0009-actions-secret-for-photo-retention.md`](docs/decisions/0009-actions-secret-for-photo-retention.md)
+に記録しています。
+
+手動実行の既定値はdry-runです。対象件数だけを確認し、削除しません。
+実削除はGitHub Actionsの手動実行画面で `dry_run` を無効にした場合、
+または毎週日曜の定期実行時だけ行います。ログには写真path、回答ID、
+匿名IDを出しません。
 
 手動実行例：
 
 ```bash
 SUPABASE_URL=... \
-SUPABASE_SERVICE_ROLE_KEY=... \
+SUPABASE_PHOTO_PURGE_SECRET_KEY=... \
 PHOTO_RETENTION_DAYS=90 \
+PHOTO_PURGE_DRY_RUN=true \
 npm run photos:purge
 ```
 

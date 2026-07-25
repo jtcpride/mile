@@ -209,3 +209,40 @@
 - `48b6cba` — 自動消去と写真確認用匿名画面の検証記録
 - `495fdc0` — 重複回答を通信エラーと誤表示しない修正
 - 追加調査結果の記録を、セッション末尾でコミットする。
+
+## 2026-07-25 — 第6回
+
+### やったこと
+
+- 発注者承認を受け、写真削除用の資格情報をGitHub Actions Secretsに
+  保存できるよう方針を改訂した。
+- Supabase公式仕様を確認し、新しいSecret keyも `service_role` として
+  RLSを迂回し、bucket単位にスコープできないことを確認した。
+- 写真削除専用Secret名を `SUPABASE_PHOTO_PURGE_SECRET_KEY` とし、
+  Project URLは既存の非秘密Actions variableを再利用するよう変更した。
+- 手動実行をdry-run既定にし、対象件数だけを表示して削除しない経路を追加した。
+- 削除候補を確認時刻90日超、非NULLの写真path、所定のUUID path形式に限定した。
+- 不正な候補があれば削除前に停止し、写真path、回答ID、匿名IDをログへ
+  出さないようにした。
+- 保持境界、対象外保護、専用Secret、dry-runを検証するテストを追加した。
+- 制約緩和の経緯、代替案、残余リスクをADR 0009へ記録した。
+
+### 選んだ技術判断とその理由
+
+- 旧 `service_role` keyではなく、写真削除専用に新規発行するSecret keyを使う。
+  権限自体は広いが、用途別に失効でき、既存資格情報を流用しないため。
+- 独自role用JWTは採用しない。GitHub ActionsへJWT署名secretを置く必要があり、
+  写真削除より広いtokenを生成できる危険が増えるため。
+- 新しい依存は追加しない。既存Supabase SDKと標準JavaScriptだけで
+  候補検証、dry-run、削除を実装できるため。
+
+### 未解決の課題
+
+- 発注者操作で、写真削除専用Secret keyをSupabase Dashboardから
+  GitHub Actions Secretsへ直接コピーする必要がある。値はCodexへ渡さない。
+- Secret設定後、dry-run、90日超の検証用写真だけの削除、90日未満写真の
+  非削除を本番Actionsで確認する。
+
+### このセッションのコミット
+
+- 写真保持ワークフローの安全化とADRを、このセッション末尾でコミットする。

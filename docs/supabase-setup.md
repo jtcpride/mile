@@ -42,7 +42,7 @@ Dashboard操作をCodexへ任せる場合は、ログイン済みのブラウザ
 Pagesのビルドはこの2値が揃ったときだけSupabaseモードになる。
 
 写真削除ジョブには別途Secret keyが必要になる。これはブラウザへ渡さず、
-GitHub Actionsの**Secrets**へ発注者またはCodexがDashboardから直接登録する。
+GitHub Actionsの**Secrets**へ発注者がDashboard間で直接登録する。
 
 ## 4. 初期SQL
 
@@ -78,3 +78,26 @@ GitHub Actionsの**Secrets**へ発注者またはCodexがDashboardから直接�
 - 公開版でミッション取得、匿名回答、サーバー確認時刻、累計マイル、
   DB一意制約による重複拒否を確認済み。
 - Database password、Secret key、`service_role` keyは取得・共有・登録していない。
+
+## 7. 90日写真削除用Secret
+
+写真削除ワークフローは、Pages用のPublishable keyや旧
+`service_role` keyを流用しない。Supabase Dashboardの
+**Project Settings → API Keys** で写真削除専用のSecret keyを新規発行し、
+GitHubの **Settings → Secrets and variables → Actions → Secrets** に
+次の名前で保存する。
+
+- `SUPABASE_PHOTO_PURGE_SECRET_KEY`
+
+値はActions Secrets以外へ貼らない。チャット、ソース、Actions variables、
+README、WORKLOG、実行ログには残さない。Project URLは既存のRepository
+Variable `VITE_SUPABASE_URL` を利用する。
+
+初回はActionsの **Purge expired answer photos → Run workflow** で
+`dry_run = true` のまま実行する。対象件数だけが表示され、削除がないことを
+確認してから、検証用の90日超写真を用意した回だけ `dry_run = false` で
+実削除を確認する。
+
+Secret keyはbucket単位にスコープできないため、判断と安全策は
+[`0009-actions-secret-for-photo-retention.md`](decisions/0009-actions-secret-for-photo-retention.md)
+を参照する。
