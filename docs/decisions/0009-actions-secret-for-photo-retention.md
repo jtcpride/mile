@@ -44,7 +44,10 @@ Pagesビルド、ブラウザ、ソース、文書、ログへ渡さない。
 最小化を強制する。
 
 - bucketを非公開 `answer-photos` に固定する。
-- `confirmed_at` が90日より古く、`photo_url` が非NULLの回答だけを取得する。
+- `answers` の直接権限は付与せず、写真保持専用の2つのDB関数だけを
+  `service_role` から実行可能にする。
+- DBサーバー時刻で `confirmed_at` が90日より古く、`photo_url` が
+  非NULLの回答だけを取得する。
 - object pathが `匿名UUID/ミッションUUID/写真UUID.拡張子` と完全一致する
   候補だけを許可する。
 - 不正な候補が1件でもあれば、削除前にジョブを失敗させる。
@@ -60,6 +63,7 @@ Pagesビルド、ブラウザ、ソース、文書、ログへ渡さない。
    `null` になる。
 4. 90日未満の写真はobjectと `photo_url` の両方が残る。
 5. Secret値がリポジトリ、Actions variables、ログに現れない。
+6. `service_role` に `answers` の直接SELECT・UPDATE権限を付与しない。
 
 ## 影響と残余リスク
 

@@ -255,7 +255,8 @@ Actions Secretsだけへ保存します。ソース、Actions variables、Pages�
 手動実行の既定値はdry-runです。対象件数だけを確認し、削除しません。
 実削除はGitHub Actionsの手動実行画面で `dry_run` を無効にした場合、
 または毎週日曜の定期実行時だけ行います。ログには写真path、回答ID、
-匿名IDを出しません。
+匿名IDを出しません。保持判定と回答行の参照解除は専用DB関数だけを通し、
+`service_role` へ `answers` の直接SELECT・UPDATE権限は付与しません。
 
 手動実行例：
 

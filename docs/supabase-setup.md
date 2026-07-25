@@ -50,7 +50,8 @@ GitHub Actionsの**Secrets**へ発注者がDashboard間で直接登録する。
 
 1. `supabase/migrations/202607230001_initial_schema.sql`
 2. `supabase/migrations/202607250001_grant_mission_read.sql`
-3. `supabase/seed.sql`
+3. `supabase/migrations/202607250002_photo_retention_rpc.sql`
+4. `supabase/seed.sql`
 
 初期SQLは、次をまとめて作成する。
 
